@@ -2,10 +2,8 @@
  * server.js
  * Express server to power the streaming chatbot.
  * 
- * This version loads the OpenAI API key and system prompt from environment variables.
- * Make sure to set:
- *   - OPENAI_API_KEY: Your OpenAI API key.
- *   - SYSTEM_PROMPT: The system prompt for your assistant "Trained".
+ * This version loads the OpenAI API key and system prompt from environment variables,
+ * and uses the cors middleware to allow cross-origin requests.
  */
 
 require('dotenv').config(); // Loads variables from a .env file during local development
@@ -13,6 +11,7 @@ require('dotenv').config(); // Loads variables from a .env file during local dev
 const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -25,6 +24,11 @@ if (!OPENAI_API_KEY || !systemPrompt) {
   console.error('ERROR: Environment variables OPENAI_API_KEY and SYSTEM_PROMPT must be set.');
   process.exit(1);
 }
+
+// Enable CORS for all origins
+app.use(cors());
+// If you want to restrict it to your WordPress domain, use:
+// app.use(cors({ origin: 'https://millionmedia.com' }));
 
 // Serve static files from the "public" folder
 app.use(express.static('public'));
