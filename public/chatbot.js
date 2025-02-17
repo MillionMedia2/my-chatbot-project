@@ -5,7 +5,8 @@
  * IMPORTANT: Update the API_URL below with the URL of your deployed Vercel project.
  * For example: "https://your-project-name.vercel.app/api/chat"
  */
-const API_URL = 'https://my-chatbot-project-ten.vercel.app/api/chat
+const API_URL = 'const API_URL = 'https://my-chatbot-project-ten.vercel.app/api/chat';
+
 '; // <-- update this!
 
 // Store conversation thread in memory
