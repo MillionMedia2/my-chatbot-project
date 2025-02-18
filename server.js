@@ -3,8 +3,8 @@
  * Express server to power the streaming chatbot.
  *
  * Loads OpenAI API key and system prompt from environment variables.
- * Uses explicit CORS headers to allow requests from https://millionmedia.com.
- * Handles preflight (OPTIONS) requests.
+ * Uses explicit middleware to set CORS headers for every request,
+ * including handling preflight (OPTIONS) requests.
  */
 
 require('dotenv').config(); // Loads variables from .env file
@@ -26,13 +26,12 @@ if (!OPENAI_API_KEY || !systemPrompt) {
 
 // Custom middleware to set CORS headers for every request
 app.use((req, res, next) => {
-  // For testing, you can use '*' to allow all origins.
-  // For production, replace '*' with your domain: 'https://millionmedia.com'
+  // For testing, we allow any origin. For production, replace '*' with your domain e.g., 'https://millionmedia.com'
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // If this is a preflight (OPTIONS) request, return immediately.
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
