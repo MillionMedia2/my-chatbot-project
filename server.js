@@ -1,12 +1,13 @@
 /*
  * server.js
  * Express server to power the streaming chatbot.
- * 
+ *
  * Loads OpenAI API key and system prompt from environment variables.
- * Handles CORS by explicitly setting headers on every request.
+ * Uses explicit CORS headers to allow requests from https://millionmedia.com.
+ * Handles preflight (OPTIONS) requests.
  */
 
-require('dotenv').config(); // Load .env variables in local development
+require('dotenv').config(); // Loads variables from .env file
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -23,26 +24,25 @@ if (!OPENAI_API_KEY || !systemPrompt) {
   process.exit(1);
 }
 
-/**
- * Custom middleware to add CORS headers.
- * This will respond to OPTIONS (preflight) requests with 200 and proper headers.
- */
+// Custom middleware to set CORS headers for every request
 app.use((req, res, next) => {
-  // Change '*' to your domain (https://millionmedia.com) to restrict access if needed.
-  res.header('Access-Control-Allow-Origin', 'https://millionmedia.com'); 
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // For testing, you can use '*' to allow all origins.
+  // For production, replace '*' with your domain: 'https://millionmedia.com'
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // If this is a preflight request, send a 200 response directly.
+  // If this is a preflight (OPTIONS) request, return immediately.
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.status(200).end();
   }
-
   next();
 });
 
 // Serve static files from the "public" folder
 app.use(express.static('public'));
+
+// Parse JSON bodies
 app.use(bodyParser.json());
 
 // POST /api/chat – receives the conversation and streams the assistant's reply
@@ -97,6 +97,7 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
