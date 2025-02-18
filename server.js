@@ -1,9 +1,9 @@
 /*
  * server.js
  * Express server to power the streaming chatbot.
- * 
- * This version loads the OpenAI API key and system prompt from environment variables,
- * and uses the cors middleware to allow cross-origin requests.
+ *
+ * This version loads the OpenAI API key and system prompt from environment variables
+ * and explicitly sets CORS headers for all requests.
  */
 
 require('dotenv').config(); // Loads variables from a .env file during local development
@@ -12,6 +12,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const cors = require('cors');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -19,16 +20,27 @@ const port = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const systemPrompt = process.env.SYSTEM_PROMPT;
 
-// Check that the necessary environment variables are set.
 if (!OPENAI_API_KEY || !systemPrompt) {
   console.error('ERROR: Environment variables OPENAI_API_KEY and SYSTEM_PROMPT must be set.');
   process.exit(1);
 }
 
-// Enable CORS for all origins
+// Use CORS middleware for all routes
 app.use(cors());
-// If you want to restrict it to your WordPress domain, use:
-// app.use(cors({ origin: 'https://millionmedia.com' }));
+// Explicitly handle OPTIONS requests for preflight checks
+app.options('*', cors());
+
+// Alternatively, if you want to manually set headers for every request, you can add:
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Or restrict to 'https://millionmedia.com'
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // If it's an OPTIONS request, send 200 immediately.
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // Serve static files from the "public" folder
 app.use(express.static('public'));
@@ -63,7 +75,7 @@ app.post('/api/chat', async (req, res) => {
       return res.status(response.status).json({ error: errorData });
     }
 
-    // Set headers for streaming response
+    // Set headers for streaming response (CORS headers are already set above)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
